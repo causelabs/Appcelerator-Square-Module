@@ -1,0 +1,17 @@
+#
+# this is your module manifest and used by Titanium
+# during compilation, packaging, distribution, etc.
+#
+version: 0.1
+description: My module
+author: Your Name
+license: Specify your license
+copyright: Copyright (c) 2010 by Your Company
+
+
+# these should not be edited
+name: square
+moduleid: com.hidefweb.square
+guid: a8e6007b-4734-4dc8-bc83-cd6cd06fdb31
+platform: android
+minsdk: 1.5.1
