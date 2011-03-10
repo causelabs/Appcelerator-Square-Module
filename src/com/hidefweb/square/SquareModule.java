@@ -58,13 +58,22 @@ public class SquareModule extends KrollModule
 
 	// Methods
 	@Kroll.method
-	public void checkInstalled() {
+	public boolean checkInstalled() {
 		Log.i(LCAT, "checkInstalled called");
 		
 		if (ourSquare.installationStatus()
 		        != Square.InstallationStatus.AVAILABLE) {
-			ourSquare.requestInstallation();
+			return false;
 		}
+		return true;
+	}
+	
+	@Kroll.method
+	public void runInstall() {
+		Log.i(LCAT, "runInstall called");
+		
+		ourSquare.requestInstallation();
+		
 		return;
 	}
 	
@@ -74,18 +83,20 @@ public class SquareModule extends KrollModule
 		
 		// Register the passed in function as a handler on the onResult stack
 		
+		/* TODO Support code for trying to set up the result of the Square call. We can't do this now.
 		this.resultCallback = handler;
 		Activity activity = invocation.getTiContext().getActivity();
 		TiActivitySupportHelper support = new TiActivitySupportHelper(activity);
 		int code = support.getUniqueResultCode();
 		support.registerResultHandler(code, this);
+		*/
 		
 		LineItem advice = new LineItem.Builder()
         	.price(price, Currency.USD)
         	.description(description)
         	.build();
 		
-		ourSquare.squareUp(Bill.containing(advice), code);
+		ourSquare.squareUp(Bill.containing(advice));
 	}
 	
 	@Override
