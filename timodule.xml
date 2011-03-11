@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ti:module xmlns:ti="http://ti.appcelerator.org" xmlns:android="http://schemas.android.com/apk/res/android">
 	<!-- Similar to tiapp.xml, but contains module/platform specific configuration in <iphone> and <android>/<android:manifest> sections -->
+	<android xmlns:android="http://schemas.android.com/apk/res/android">
+		<manifest>
+			<application>
+				<activity android:name="com.hidefweb.square.LaunchSquare"
+				/>
+			</application>
+		</manifest>
+	</android>
 </ti:module>

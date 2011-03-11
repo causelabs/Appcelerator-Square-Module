@@ -13,7 +13,6 @@ import org.appcelerator.kroll.KrollInvocation;
 import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.annotations.Kroll;
 
-import org.appcelerator.titanium.TiActivity;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.kroll.KrollCallback;
@@ -22,7 +21,6 @@ import org.appcelerator.titanium.util.Log;
 import org.appcelerator.titanium.util.TiActivityResultHandler;
 import org.appcelerator.titanium.util.TiActivitySupport;
 import org.appcelerator.titanium.util.TiConfig;
-import org.appcelerator.titanium.util.TiActivitySupportHelper;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -44,15 +42,20 @@ public class SquareModule extends KrollModule
 	private static Square ourSquare = null;
 	
 	protected KrollCallback resultCallback;
+	protected int requestCode;
 
 	// You can define constants with @Kroll.constant, for example:
 	// @Kroll.constant public static final String EXTERNAL_NAME = value;
+	@Kroll.constant 
+	public static final int EVENT_SUCCESS = -1;
+	
+	@Kroll.constant 
+	public static final int EVENT_CANCELLED = 0;
 	
 	public SquareModule(TiContext tiContext) {
 		super(tiContext);
 		
 		ourSquare = new Square(tiContext.getActivity());
-		
 		
 	}
 
@@ -82,34 +85,36 @@ public class SquareModule extends KrollModule
 		Log.i(LCAT, "runPayment called");
 		
 		// Register the passed in function as a handler on the onResult stack
+		/* TODO Support code for trying to set up the result of the Square call. We can't do this now. */
 		
-		/* TODO Support code for trying to set up the result of the Square call. We can't do this now.
 		this.resultCallback = handler;
-		Activity activity = invocation.getTiContext().getActivity();
-		TiActivitySupportHelper support = new TiActivitySupportHelper(activity);
-		int code = support.getUniqueResultCode();
-		support.registerResultHandler(code, this);
-		*/
 		
-		LineItem advice = new LineItem.Builder()
-        	.price(price, Currency.USD)
-        	.description(description)
-        	.build();
+		Activity activity = getTiContext().getTiApp().getCurrentActivity();
+		TiActivitySupport support = (TiActivitySupport) activity;
+		requestCode = support.getUniqueResultCode();
 		
-		ourSquare.squareUp(Bill.containing(advice));
+		Intent square = new Intent(activity, LaunchSquare.class);
+		square.putExtra(LaunchSquare.PRICE, price);
+		square.putExtra(LaunchSquare.DESCRIPTION, description);
+		square.putExtra(LaunchSquare.CODE, requestCode);
+		
+		support.launchActivityForResult(square, requestCode, this);
 	}
 	
 	@Override
-	public void onResult(Activity activity, int requestCode, int resultCode, Intent data)
+	public void onResult(Activity activity, int thisRequestCode, int resultCode, Intent data)
 	{
 		Log.i(LCAT, "onResult Called");
 		if (resultCallback == null) return;
-		KrollDict event = new KrollDict();
-		event.put(TiC.EVENT_PROPERTY_REQUEST_CODE, requestCode);
-		event.put(TiC.EVENT_PROPERTY_RESULT_CODE, resultCode);
-		event.put(TiC.EVENT_PROPERTY_INTENT, new IntentProxy(getTiContext(), data));
-		event.put(TiC.EVENT_PROPERTY_SOURCE, this);
-		resultCallback.callAsync(event);
+		
+		if ( thisRequestCode == requestCode ) {
+			KrollDict event = new KrollDict();
+			event.put(TiC.EVENT_PROPERTY_REQUEST_CODE, requestCode);
+			event.put(TiC.EVENT_PROPERTY_RESULT_CODE, resultCode);
+			event.put(TiC.EVENT_PROPERTY_INTENT, new IntentProxy(getTiContext(), data));
+			event.put(TiC.EVENT_PROPERTY_SOURCE, this);
+			resultCallback.callAsync(event);
+		}
 	}
 
 	@Override
